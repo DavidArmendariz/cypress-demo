@@ -1,0 +1,85 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Secrets never live in the repo. Locally they come from cypress.env.json
+  # (gitignored); in CI they come from GitHub secrets via CYPRESS_* variables,
+  # and cy.env([...]) reads them the same way in both places.
+  CYPRESS_testUserEmail: demo@example.com
+  CYPRESS_testUserPassword: ${{ secrets.TEST_USER_PASSWORD || 'Password123!' }}
+
+jobs:
+  static:
+    name: Types and lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+
+  e2e:
+    name: E2E
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+
+      # The action installs deps, caches the Cypress binary, boots the servers
+      # and waits for them. Starting a server from inside a spec with cy.exec()
+      # leaves orphaned processes and port conflicts.
+      - uses: cypress-io/github-action@v6
+        with:
+          start: npm run dev
+          wait-on: 'http://localhost:5180, http://localhost:3001/api/health'
+          wait-on-timeout: 120
+          browser: chrome
+          # Parallelism needs a Cypress Cloud record key:
+          #   record: true
+          #   parallel: true
+          # and a matrix of `containers: [1, 2, 3]` on this job.
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: cypress-screenshots
+          path: cypress/screenshots
+          if-no-files-found: ignore
+          retention-days: 7
+
+  component:
+    name: Component
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - uses: cypress-io/github-action@v6
+        with:
+          component: true
+          browser: chrome
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: cypress-component-screenshots
+          path: cypress/screenshots
+          if-no-files-found: ignore
+          retention-days: 7

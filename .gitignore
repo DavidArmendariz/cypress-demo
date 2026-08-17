@@ -1,0 +1,14 @@
+node_modules/
+dist/
+*.local
+.DS_Store
+
+# Cypress artifacts
+cypress/screenshots/
+cypress/videos/
+cypress/downloads/
+
+# Local secrets. Copy cypress.env.example.json to cypress.env.json and fill it in.
+cypress.env.json
+.env
+.env.local

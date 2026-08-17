@@ -1,0 +1,7 @@
+[
+  { "title": "Write the failing test first", "completed": true },
+  { "title": "Add a data-cy attribute", "completed": true },
+  { "title": "Delete the last cy.wait(2000)", "completed": false },
+  { "title": "Seed state over the API", "completed": false },
+  { "title": "Cache the login with cy.session", "completed": false }
+]
