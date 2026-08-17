@@ -16,7 +16,8 @@ SPEC_FLAG := $(if $(CYPRESS_SPEC),--spec "$(CYPRESS_SPEC)",)
 WAIT_ON := http://localhost:5180|http://localhost:3001/api/health
 
 .PHONY: help install dev dev-api dev-web build lint lint-fix typecheck verify \
-        open open-ct e2e component api-tests a11y reset-db clean
+        open open-ct e2e component api-tests a11y reset-db clean \
+        docs docs-build docs-preview
 
 help: ## Show this help
 	@grep -hE '^[a-zA-Z0-9_-]+:.*?## ' $(MAKEFILE_LIST) \
@@ -72,10 +73,20 @@ api-tests: ## Run only the API contract specs (fast feedback loop)
 a11y: ## Run only the accessibility specs
 	$(MAKE) e2e CYPRESS_SPEC=cypress/e2e/a11y/*.cy.ts
 
-verify: typecheck lint e2e component ## Everything CI runs
+docs: install ## Serve the docs site locally with hot reload
+	npm run docs:dev
+
+docs-build: install ## Build the docs site into docs/.vitepress/dist
+	npm run docs:build
+
+docs-preview: docs-build ## Serve the built docs site
+	npm run docs:preview
+
+verify: typecheck lint e2e component docs-build ## Everything CI runs
 
 reset-db: ## Reset the API's state (requires `make dev` in another terminal)
 	curl -fsS -X POST http://localhost:3001/api/test/reset && echo "  reset ok"
 
 clean: ## Remove build output and Cypress artifacts
-	rm -rf dist cypress/screenshots cypress/videos cypress/downloads
+	rm -rf dist cypress/screenshots cypress/videos cypress/downloads \
+		docs/.vitepress/dist docs/.vitepress/cache

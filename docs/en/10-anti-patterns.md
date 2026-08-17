@@ -1,5 +1,7 @@
 # 10. Anti-patterns
 
+*[English](../en/10-anti-patterns.md) · [Español](../es/10-anti-patterns.md)*
+
 - Most Cypress flake is one of a dozen recurring habits.
 - Five of them are caught by the lint config in this repo. The rest need review.
 - Each entry below links to the doc and the file that shows the alternative.

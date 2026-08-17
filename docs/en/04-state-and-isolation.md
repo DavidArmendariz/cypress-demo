@@ -1,5 +1,7 @@
 # 4. State and test isolation
 
+*[English](../en/04-state-and-isolation.md) · [Español](../es/04-state-and-isolation.md)*
+
 - Every test must pass when run alone. Any test, any order, any time.
 - Set up state over the API. Never build a fixture by clicking through the UI.
 - Reset before, not after.

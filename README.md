@@ -12,7 +12,8 @@ A working reference project. The app is deliberately small; the test suite is th
 make install     # deps + a local cypress.env.json
 make dev         # API on :3001, client on :5180
 make open        # Cypress, E2E mode, servers already up
-make verify      # typecheck + lint + E2E + component. This is what CI runs.
+make docs        # the docs site on :5175, hot reloading
+make verify      # typecheck + lint + E2E + component + docs build. This is what CI runs.
 ```
 
 Sign in with `demo@example.com` / `Password123!`.
@@ -34,6 +35,9 @@ $ make help
   component    Run the component suite headlessly
   api-tests    Run only the API contract specs (fast feedback loop)
   a11y         Run only the accessibility specs
+  docs         Serve the docs site locally with hot reload
+  docs-build   Build the docs site into docs/.vitepress/dist
+  docs-preview Serve the built docs site
   verify       Everything CI runs
   reset-db     Reset the API's state (requires `make dev` in another terminal)
   clean        Remove build output and Cypress artifacts
@@ -65,41 +69,53 @@ cookie is same-origin in tests exactly as it is for a user.
 | `cypress/e2e/` | Journey and contract specs. |
 | `cypress/component/` | Component specs for the presentational pieces. |
 | `cypress/support/commands.ts` | `getByData`, `resetDb`, `seed`, `loginByApi`, `loginByUi`. |
-| `docs/` | The practices, each pointing at the code that implements it. |
+| `docs/en/`, `docs/es/` | The practices in English and Spanish, each pointing at the code that implements it. |
+| `docs/.vitepress/` | VitePress config for the published site. |
 
 ## The practices, and where to look
 
 | Practice | Where |
 |---|---|
-| Log in over the API, cache with `cy.session` | [`cypress/support/commands.ts`](cypress/support/commands.ts), [docs](docs/03-testing-behind-auth.md) |
+| Log in over the API, cache with `cy.session` | [`cypress/support/commands.ts`](cypress/support/commands.ts), [docs](docs/en/03-testing-behind-auth.md) |
 | Test the login form through the UI exactly once | [`cypress/e2e/auth/login-ui.cy.ts`](cypress/e2e/auth/login-ui.cy.ts) |
-| Select on `data-cy`, never on classes or copy | every spec, [docs](docs/02-selectors.md) |
-| Seed state over the API, not through the UI | [`cypress/e2e/todos/filters.cy.ts`](cypress/e2e/todos/filters.cy.ts), [docs](docs/04-state-and-isolation.md) |
+| Select on `data-cy`, never on classes or copy | every spec, [docs](docs/en/02-selectors.md) |
+| Seed state over the API, not through the UI | [`cypress/e2e/todos/filters.cy.ts`](cypress/e2e/todos/filters.cy.ts), [docs](docs/en/04-state-and-isolation.md) |
 | Reset in `before`, never clean up in `after` | [`cypress/support/e2e.ts`](cypress/support/e2e.ts) |
-| Wait on aliased requests, never on a duration | [`cypress/e2e/todos/crud.cy.ts`](cypress/e2e/todos/crud.cy.ts), [docs](docs/05-network-control.md) |
+| Wait on aliased requests, never on a duration | [`cypress/e2e/todos/crud.cy.ts`](cypress/e2e/todos/crud.cy.ts), [docs](docs/en/05-network-control.md) |
 | Stub only what you cannot otherwise reach | [`cypress/e2e/todos/network-failures.cy.ts`](cypress/e2e/todos/network-failures.cy.ts) |
 | Aliases and closures instead of `const x = cy.get(...)` | [`cypress/e2e/todos/crud.cy.ts`](cypress/e2e/todos/crud.cy.ts) |
 | Several assertions per test, not one | [`cypress/e2e/auth/login-ui.cy.ts`](cypress/e2e/auth/login-ui.cy.ts) |
-| Component tests for permutations, E2E for wiring | [`cypress/component/`](cypress/component), [docs](docs/06-component-vs-e2e.md) |
+| Component tests for permutations, E2E for wiring | [`cypress/component/`](cypress/component), [docs](docs/en/06-component-vs-e2e.md) |
 | API contract specs with no browser involved | [`cypress/e2e/api/auth-api.cy.ts`](cypress/e2e/api/auth-api.cy.ts) |
-| `cy.env()` for secrets, `Cypress.expose()` for config | [`cypress.config.ts`](cypress.config.ts), [docs](docs/07-secrets-and-env.md) |
-| Accessibility as a test, not a checklist | [`cypress/e2e/a11y/accessibility.cy.ts`](cypress/e2e/a11y/accessibility.cy.ts), [docs](docs/08-accessibility.md) |
+| `cy.env()` for secrets, `Cypress.expose()` for config | [`cypress.config.ts`](cypress.config.ts), [docs](docs/en/07-secrets-and-env.md) |
+| Accessibility as a test, not a checklist | [`cypress/e2e/a11y/accessibility.cy.ts`](cypress/e2e/a11y/accessibility.cy.ts), [docs](docs/en/08-accessibility.md) |
 | Servers started outside Cypress | [`Makefile`](Makefile), [`.github/workflows/ci.yml`](.github/workflows/ci.yml) |
 | Lint rules that enforce all of the above | [`eslint.config.js`](eslint.config.js) |
 
 ## Docs
 
-1. [Project setup](docs/01-project-setup.md)
-2. [Selectors](docs/02-selectors.md)
-3. [Testing behind auth](docs/03-testing-behind-auth.md)
-4. [State and test isolation](docs/04-state-and-isolation.md)
-5. [Network control](docs/05-network-control.md)
-6. [Component tests vs E2E](docs/06-component-vs-e2e.md)
-7. [Secrets and environment variables](docs/07-secrets-and-env.md)
-8. [Accessibility](docs/08-accessibility.md)
-9. [CI](docs/09-ci.md)
-10. [Anti-patterns](docs/10-anti-patterns.md)
-11. [The Makefile as the entrypoint](docs/11-makefile-as-entrypoint.md)
+Published with VitePress at **https://davidarmendariz.github.io/cypress-demo/** (enable GitHub Pages
+with "GitHub Actions" as the source, then push to `main`). Locally: `make docs`.
+
+Available in English and Spanish. Same filenames in both, so every page has a direct counterpart.
+Index: [`docs/README.md`](docs/README.md), which is also the site's landing page.
+
+| # | English | Español |
+|---|---|---|
+| 1 | [Project setup](docs/en/01-project-setup.md) | [Configuración del proyecto](docs/es/01-project-setup.md) |
+| 2 | [Selectors](docs/en/02-selectors.md) | [Selectores](docs/es/02-selectors.md) |
+| 3 | [Testing behind auth](docs/en/03-testing-behind-auth.md) | [Probar detrás de la autenticación](docs/es/03-testing-behind-auth.md) |
+| 4 | [State and test isolation](docs/en/04-state-and-isolation.md) | [Estado y aislamiento de pruebas](docs/es/04-state-and-isolation.md) |
+| 5 | [Network control](docs/en/05-network-control.md) | [Control de la red](docs/es/05-network-control.md) |
+| 6 | [Component tests vs E2E](docs/en/06-component-vs-e2e.md) | [Pruebas de componente frente a E2E](docs/es/06-component-vs-e2e.md) |
+| 7 | [Secrets and environment variables](docs/en/07-secrets-and-env.md) | [Secretos y variables de entorno](docs/es/07-secrets-and-env.md) |
+| 8 | [Accessibility](docs/en/08-accessibility.md) | [Accesibilidad](docs/es/08-accessibility.md) |
+| 9 | [CI](docs/en/09-ci.md) | [CI](docs/es/09-ci.md) |
+| 10 | [Anti-patterns](docs/en/10-anti-patterns.md) | [Antipatrones](docs/es/10-anti-patterns.md) |
+| 11 | [The Makefile as the entrypoint](docs/en/11-makefile-as-entrypoint.md) | [El Makefile como punto de entrada](docs/es/11-makefile-as-entrypoint.md) |
+
+Code, file paths, identifiers and Cypress API names stay in English in both locales. Only the prose
+is translated. `docs/en/` is the source of truth when the two disagree.
 
 ## Versions
 

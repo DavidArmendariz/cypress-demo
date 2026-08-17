@@ -1,5 +1,7 @@
 # 11. The Makefile as the entrypoint
 
+*[English](../en/11-makefile-as-entrypoint.md) · [Español](../es/11-makefile-as-entrypoint.md)*
+
 - One discoverable command surface: `make help`. No tribal knowledge about which npm script to run.
 - CI runs the same targets you do, so "works on my machine" has nowhere to hide.
 - The Makefile delegates to npm scripts. It never reimplements them.

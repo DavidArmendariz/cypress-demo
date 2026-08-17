@@ -21,8 +21,8 @@ jobs:
     name: Types and lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: npm
@@ -34,8 +34,8 @@ jobs:
     name: E2E
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: npm
@@ -43,7 +43,7 @@ jobs:
       # The action installs deps, caches the Cypress binary, boots the servers
       # and waits for them. Starting a server from inside a spec with cy.exec()
       # leaves orphaned processes and port conflicts.
-      - uses: cypress-io/github-action@v6
+      - uses: cypress-io/github-action@v7
         with:
           start: npm run dev
           wait-on: 'http://localhost:5180, http://localhost:3001/api/health'
@@ -54,7 +54,7 @@ jobs:
           #   parallel: true
           # and a matrix of `containers: [1, 2, 3]` on this job.
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: cypress-screenshots
@@ -66,17 +66,17 @@ jobs:
     name: Component
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: npm
-      - uses: cypress-io/github-action@v6
+      - uses: cypress-io/github-action@v7
         with:
           component: true
           browser: chrome
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: cypress-component-screenshots

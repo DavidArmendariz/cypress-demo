@@ -1,5 +1,7 @@
 # 1. Project setup
 
+*[English](../en/01-project-setup.md) · [Español](../es/01-project-setup.md)*
+
 - One `baseUrl`, one origin, one config file. No URLs in specs.
 - Retries in CI only. Timeouts left near the default.
 - The API and the client are started by the process manager, never by a spec.

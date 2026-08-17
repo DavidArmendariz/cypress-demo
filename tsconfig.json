@@ -17,5 +17,12 @@
     "noEmit": true,
     "types": ["node"]
   },
-  "include": ["src", "server", "shared", "vite.config.ts", "cypress.config.ts"]
+  "include": [
+    "src",
+    "server",
+    "shared",
+    "vite.config.ts",
+    "cypress.config.ts",
+    "docs/.vitepress/config.ts"
+  ]
 }

@@ -1,5 +1,7 @@
 # 6. Component tests vs E2E
 
+*[English](../en/06-component-vs-e2e.md) · [Español](../es/06-component-vs-e2e.md)*
+
 - Component tests own the permutations. E2E owns the wiring.
 - If a test does not need the server, the router or a session, it should not pay for them.
 - Test the public surface: props in, events out. Never component internals.

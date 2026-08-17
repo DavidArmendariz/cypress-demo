@@ -1,5 +1,7 @@
 # 7. Secrets and environment variables
 
+*[English](../en/07-secrets-and-env.md) · [Español](../es/07-secrets-and-env.md)*
+
 - `Cypress.env()` is deprecated as of Cypress 15.10. Use `cy.env([...])`.
 - `cy.env()` for secrets, `Cypress.expose()` for public config.
 - `allowCypressEnv: false` turns the old habit into a hard error.

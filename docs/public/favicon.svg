@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Cypress best practices">
+  <rect width="32" height="32" rx="7" fill="#10131a" />
+  <circle cx="16" cy="16" r="9.5" fill="none" stroke="#5b8def" stroke-width="2.5" />
+  <path d="M11 16.4l3.2 3.2L21 12.6" fill="none" stroke="#5b8def" stroke-width="2.8"
+        stroke-linecap="round" stroke-linejoin="round" />
+</svg>

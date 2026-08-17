@@ -3,6 +3,10 @@ dist/
 *.local
 .DS_Store
 
+# VitePress build output
+docs/.vitepress/dist/
+docs/.vitepress/cache/
+
 # Cypress artifacts
 cypress/screenshots/
 cypress/videos/

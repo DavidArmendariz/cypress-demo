@@ -1,5 +1,7 @@
 # 5. Network control
 
+*[English](../en/05-network-control.md) · [Español](../es/05-network-control.md)*
+
 - Never `cy.wait(number)`. Wait on an aliased request or assert on a state.
 - Real requests for the happy path. Stubs for failures and for states you cannot otherwise reach.
 - Assert on the request the app actually sent, not the one you hoped it sent.

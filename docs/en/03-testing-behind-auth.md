@@ -1,5 +1,7 @@
 # 3. Testing behind auth
 
+*[English](../en/03-testing-behind-auth.md) · [Español](../es/03-testing-behind-auth.md)*
+
 - Test the login form through the UI once. Everywhere else, log in over the API and cache it.
 - `cy.session` with a `validate` callback is the whole mechanism.
 - The specs that prove the auth boundary must explicitly *not* use the cached session.

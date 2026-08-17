@@ -1,5 +1,7 @@
 # 2. Selectors
 
+*[English](../en/02-selectors.md) · [Español](../es/02-selectors.md)*
+
 - One convention: `data-cy`. One helper: `cy.getByData()`.
 - Classes, tag structure and user-visible copy are all free to change. Selectors are not.
 - Scope actions to a container when a page has repeated rows.

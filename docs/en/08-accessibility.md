@@ -1,5 +1,7 @@
 # 8. Accessibility
 
+*[English](../en/08-accessibility.md) · [Español](../es/08-accessibility.md)*
+
 - `cy.checkA11y()` is a floor, not a ceiling. It catches roughly a third of real defects.
 - Check the error and loading states too, not just the happy page.
 - Add at least one keyboard test, because a page can be axe-clean and unusable without a mouse.

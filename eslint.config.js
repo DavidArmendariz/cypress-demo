@@ -5,7 +5,16 @@ import reactHooks from 'eslint-plugin-react-hooks'
 import cypress from 'eslint-plugin-cypress'
 
 export default tseslint.config(
-  { ignores: ['dist/**', 'node_modules/**', 'cypress/screenshots/**', 'cypress/videos/**'] },
+  {
+    ignores: [
+      'dist/**',
+      'node_modules/**',
+      'cypress/screenshots/**',
+      'cypress/videos/**',
+      'docs/.vitepress/dist/**',
+      'docs/.vitepress/cache/**',
+    ],
+  },
 
   js.configs.recommended,
   ...tseslint.configs.recommended,
@@ -18,7 +27,13 @@ export default tseslint.config(
   },
 
   {
-    files: ['server/**/*.ts', 'vite.config.ts', 'cypress.config.ts', 'eslint.config.js'],
+    files: [
+      'server/**/*.ts',
+      'vite.config.ts',
+      'cypress.config.ts',
+      'eslint.config.js',
+      'docs/.vitepress/config.ts',
+    ],
     languageOptions: { globals: globals.node },
   },
 
