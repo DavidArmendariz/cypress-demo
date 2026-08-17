@@ -2,13 +2,13 @@
 
 *[English](../en/08-accessibility.md) · [Español](../es/08-accessibility.md)*
 
-- `cy.checkA11y()` is a floor, not a ceiling. It catches roughly a third of real defects.
+- Automated checks catch roughly a third of real defects. They are a floor, not a ceiling.
 - Check the error and loading states too, not just the happy page.
 - Add at least one keyboard test, because a page can be axe-clean and unusable without a mouse.
 
 ## Setup
 
-`cypress-axe` is imported in `cypress/support/e2e.ts`. Each spec injects axe after the page is in the
+Install `cypress-axe`, import it in your support file, and inject axe after the page reaches the
 state you want to check:
 
 ```ts
@@ -17,83 +17,95 @@ cy.injectAxe()
 cy.checkA11y()
 ```
 
-`cy.injectAxe()` must come after `cy.visit()`, because a visit reloads the page and throws away the
-injected script.
+`cy.injectAxe()` must come after `cy.visit()`. A visit reloads the page and discards the injected
+script.
 
-## Check the states, not just the page
+## Check states, not just pages
 
-`cypress/e2e/a11y/accessibility.cy.ts` checks four things, and the second one is the one teams
-usually miss:
+Four checks give good coverage, and the second is the one teams usually miss:
 
-1. The login page.
-2. The login page **with validation errors showing**. Error states are where `aria-invalid`,
+1. The page in its default state.
+2. The page **with validation errors showing**. Error states are where `aria-invalid`,
    `aria-describedby` and `role="alert"` either exist or do not.
-3. The todos page with real content in it, both an open and a completed item.
+3. The page with real content in it, including any variant rendering such as a completed or archived
+   row.
 4. A keyboard-only walkthrough.
 
 Wait for the state before checking it:
 
 ```ts
-cy.getByData('todo-item').should('have.length', 2)
+cy.getByData('project-item').should('have.length', 2)
 cy.injectAxe()
 cy.checkA11y()
 ```
 
 Otherwise axe scans a loading spinner and reports a clean bill of health.
 
-## What the app does to earn those passes
+## The markup that earns those passes
 
-Nothing in `src/` was written for axe specifically, which is the point:
+None of this needs to be written for axe specifically:
 
-- Every input has a real `<label for>`. `TodoItem` labels its checkbox with the todo title, so a
-  screen reader announces "Buy milk, checkbox, not checked", not "checkbox".
-- Error messages use `role="alert"`, and fields point at them with `aria-describedby`. Invalid
+- **Every input has a real `<label for>`.** Label a row's checkbox with that row's name, so a screen
+  reader announces "Migration plan, checkbox, not checked" rather than "checkbox".
+- **Error messages use `role="alert"`**, fields point at them with `aria-describedby`, and invalid
   fields carry `aria-invalid`.
-- `TodoFilters` is a labelled `role="group"` of buttons with `aria-pressed`, so the active filter is
-  exposed to assistive tech rather than communicated only by colour.
-- Delete buttons are labelled per row (`aria-label="Delete Buy milk"`). A list of twelve buttons all
-  called "Delete" is useless when read out of context.
-- Loading and pending states use `role="status"`, so they are announced rather than silently
-  appearing.
+- **Toggle groups expose state**, for example buttons with `aria-pressed` inside a labelled
+  `role="group"`, so the active option is not communicated by colour alone.
+- **Per-row controls are labelled per row**: `aria-label="Delete Migration plan"`. A list of twelve
+  buttons all called "Delete" is useless read out of context.
+- **Loading and pending states use `role="status"`**, so they are announced rather than appearing
+  silently.
 
-Notice that each of these is also what makes the element easy to select and assert on. Accessible
-markup and testable markup are largely the same markup.
+Notice that each of these also makes the element easier to select and assert on. Accessible markup
+and testable markup are largely the same markup, which is the strongest argument for doing this work
+alongside the tests rather than as a separate project.
 
 ## The keyboard test
 
 ```ts
-cy.getByData('new-todo-input').focus()
-cy.focused().type('Added without a mouse{enter}')
+cy.getByData('new-project-input').focus()
+cy.focused().type('Migration plan{enter}')
+cy.wait('@createProject')
 ```
 
-Then, to prove the checkbox has a real accessible name rather than a coincidental one:
+To prove a control has a real accessible name rather than a coincidental one, assert the association
+instead of the text:
 
 ```ts
-cy.getByData('todo-toggle')
+cy.getByData('project-toggle')
   .invoke('attr', 'id')
   .then((id) => {
-    cy.getByData('todo-title').should('have.attr', 'for', id)
+    cy.getByData('project-title').should('have.attr', 'for', id)
   })
 ```
 
-**A known limit.** `cy.type(' ')` dispatches synthetic key events, and the browser's default
-"space activates a focused checkbox" behaviour does not run for those. Use `cy.check()` for the state
-change, and reach for `cypress-real-events` (Chromium only) if you specifically need native key
-events. Pretending the synthetic version proves keyboard operability would be worse than admitting
-the gap.
+**A known limit.** `cy.type(' ')` dispatches synthetic key events, and the browser's default "space
+activates a focused checkbox" behaviour does not run for those. Use `cy.check()` for the state
+change, and reach for `cypress-real-events` (Chromium only) when you specifically need native key
+events. Asserting that the synthetic version proves keyboard operability would be worse than
+acknowledging the gap.
 
-`cy.focus()` also ends a command chain, so each following command starts again from `cy.`. The
-`unsafe-to-chain-command` lint rule catches this.
+Also note `cy.focus()` ends a command chain, so the next command starts again from `cy.`. A lint rule
+catches this: see [10-anti-patterns.md](10-anti-patterns.md).
 
 ## Tuning, carefully
 
 `cy.checkA11y()` accepts a context and a rule set:
 
 ```ts
-cy.checkA11y('[data-cy="todos-page"]', {
+cy.checkA11y('[data-cy="projects-page"]', {
   rules: { 'color-contrast': { enabled: false } },
 })
 ```
 
 Scoping to a region is fine. Disabling a rule should be rare, commented, and tracked, because a
-disabled rule is a permanent decision made in a hurry. No rules are disabled in this repo.
+disabled rule is a permanent decision made in a hurry.
+
+## Adopting this on an existing product
+
+A large application will not pass `cy.checkA11y()` on day one, and a hundred failures on the first
+run tends to end the initiative. A workable sequence:
+
+1. Turn it on for **new** pages only, so the backlog stops growing.
+2. Add it to the two or three highest-traffic flows, fixing as you go.
+3. Expand page by page, treating each addition as a small piece of work rather than a project.

@@ -69,7 +69,7 @@ cookie is same-origin in tests exactly as it is for a user.
 | `cypress/e2e/` | Journey and contract specs. |
 | `cypress/component/` | Component specs for the presentational pieces. |
 | `cypress/support/commands.ts` | `getByData`, `resetDb`, `seed`, `loginByApi`, `loginByUi`. |
-| `docs/en/`, `docs/es/` | The practices in English and Spanish, each pointing at the code that implements it. |
+| `docs/en/`, `docs/es/` | The client-facing guide, English and Spanish. Deliberately repo-agnostic. |
 | `docs/.vitepress/` | VitePress config for the published site. |
 
 ## The practices, and where to look
@@ -94,11 +94,15 @@ cookie is same-origin in tests exactly as it is for a user.
 
 ## Docs
 
-Published with VitePress at **https://davidarmendariz.github.io/cypress-demo/** (enable GitHub Pages
-with "GitHub Actions" as the source, then push to `main`). Locally: `make docs`.
+Published with VitePress at **https://davidarmendariz.github.io/cypress-demo/**. Locally: `make docs`.
 
 Available in English and Spanish. Same filenames in both, so every page has a direct counterpart.
 Index: [`docs/README.md`](docs/README.md), which is also the site's landing page.
+
+**The guide is written to be shared with clients**, so it stands on its own: no file paths into this
+repository, no references to the demo app, and examples built around a generic scenario (users sign in,
+then manage their projects). Keep it that way when editing. Anything specific to this codebase belongs
+in this README, not in `docs/`.
 
 | # | English | Español |
 |---|---|---|
@@ -107,12 +111,12 @@ Index: [`docs/README.md`](docs/README.md), which is also the site's landing page
 | 3 | [Testing behind auth](docs/en/03-testing-behind-auth.md) | [Probar detrás de la autenticación](docs/es/03-testing-behind-auth.md) |
 | 4 | [State and test isolation](docs/en/04-state-and-isolation.md) | [Estado y aislamiento de pruebas](docs/es/04-state-and-isolation.md) |
 | 5 | [Network control](docs/en/05-network-control.md) | [Control de la red](docs/es/05-network-control.md) |
-| 6 | [Component tests vs E2E](docs/en/06-component-vs-e2e.md) | [Pruebas de componente frente a E2E](docs/es/06-component-vs-e2e.md) |
+| 6 | [Choosing the right level of test](docs/en/06-component-vs-e2e.md) | [Elegir el nivel adecuado de prueba](docs/es/06-component-vs-e2e.md) |
 | 7 | [Secrets and environment variables](docs/en/07-secrets-and-env.md) | [Secretos y variables de entorno](docs/es/07-secrets-and-env.md) |
 | 8 | [Accessibility](docs/en/08-accessibility.md) | [Accesibilidad](docs/es/08-accessibility.md) |
-| 9 | [CI](docs/en/09-ci.md) | [CI](docs/es/09-ci.md) |
+| 9 | [Continuous integration](docs/en/09-ci.md) | [Integración continua](docs/es/09-ci.md) |
 | 10 | [Anti-patterns](docs/en/10-anti-patterns.md) | [Antipatrones](docs/es/10-anti-patterns.md) |
-| 11 | [The Makefile as the entrypoint](docs/en/11-makefile-as-entrypoint.md) | [El Makefile como punto de entrada](docs/es/11-makefile-as-entrypoint.md) |
+| 11 | [A single task entrypoint](docs/en/11-makefile-as-entrypoint.md) | [Un único punto de entrada de tareas](docs/es/11-makefile-as-entrypoint.md) |
 
 Code, file paths, identifiers and Cypress API names stay in English in both locales. Only the prose
 is translated. `docs/en/` is the source of truth when the two disagree.

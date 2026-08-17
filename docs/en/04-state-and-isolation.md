@@ -9,98 +9,129 @@
 ## The contract
 
 ```bash
-make e2e CYPRESS_SPEC=cypress/e2e/todos/crud.cy.ts
+npx cypress run --spec cypress/e2e/projects/crud.cy.ts
 ```
 
-If that fails but the full run passes, a test is leaning on state left behind by another one. The
-suite in this repo is verified both in order and in reverse spec order.
+If that fails but the full run passes, a test is leaning on state another test left behind. Run the
+suite in reverse spec order occasionally to catch the same class of problem.
+
+This is worth enforcing early. Order dependence is cheap to prevent and expensive to unpick once a
+suite has grown around it.
 
 ## Seed over the API
 
-`cypress/support/commands.ts` gives two commands:
+Give yourself two commands and use them everywhere:
 
 ```ts
-cy.resetDb()                      // POST /api/test/reset  -> empty store + default user
-cy.seed({ todos: [/* ... */] })   // POST /api/test/seed   -> exact fixtures, returns real ids
+cy.resetDb()                                    // wipe, recreate the baseline account
+cy.seed({ projects: [{ name: 'Migration plan' }] })   // exact fixtures for this test
 ```
 
-`cy.seed` returns the created records, so a spec can assert against the real server-generated id
-rather than guessing:
+Both are thin wrappers over the test-only endpoints described in
+[01-project-setup.md](01-project-setup.md):
 
 ```ts
-// cypress/e2e/todos/crud.cy.ts
-cy.seed({ todos: [{ email: 'demo@example.com', title: 'Aliased' }] }).then((seeded) => {
-  cy.wrap(seeded.todos[0]).as('seededTodo')
+Cypress.Commands.add('seed', (payload) =>
+  cy.request('POST', '/api/test/seed', payload).its('body'),
+)
+```
+
+Have the seed endpoint **return what it created**, so specs assert against real server-generated ids
+instead of guessing:
+
+```ts
+cy.seed({ projects: [{ name: 'Migration plan' }] }).then((seeded) => {
+  cy.wrap(seeded.projects[0]).as('project')
 })
 ```
 
-Building the same fixture by typing into the add-todo form would make a filtering test fail whenever
+Building that same fixture by typing into the create form would make a filtering test fail whenever
 the *creation* form breaks. Two unrelated features, one failure, and a misleading one.
 
-Larger fixtures come from a file, so the spec reads as behaviour rather than as a pile of literals:
+Larger data sets belong in a fixture file, so the spec reads as behaviour rather than as a pile of
+literals:
 
 ```ts
-// cypress/e2e/todos/filters.cy.ts
-cy.fixture<TodoFixture[]>('todos').then((todos) => {
-  cy.seed({ todos: todos.map((todo) => ({ email: 'demo@example.com', ...todo })) })
-  cy.wrap(todos).as('todos')
+cy.fixture('projects').then((projects) => {
+  cy.seed({ projects })
+  cy.wrap(projects).as('projects')
 })
 ```
 
 ## `before`, not `after`
 
 ```ts
-// cypress/support/e2e.ts
 before(() => {
   cy.task('db:reset')
 })
 ```
 
-Cleanup in `after`/`afterEach` does not run when a test crashes, when the runner is stopped
+Cleanup in `after` or `afterEach` does not run when a test crashes, when you stop the runner
 mid-test, or when the browser dies. Worse, when it does run it destroys the state you would want to
-inspect while debugging the failure you are staring at. Reset at the start, leave the ending state
-alone.
+inspect while debugging the failure in front of you.
+
+Reset at the start of a run and leave the ending state alone.
 
 ## `cy.task` vs `cy.request`
 
-Both reset the API here, on purpose:
+Both can reset your backend, and they are good at different things:
 
-- `cy.resetDb()` uses `cy.request`. It runs in the browser context, shows up in the command log, and
-  is what specs use.
-- `cy.task('db:reset')` runs in Node (`cypress.config.ts`). It is the escape hatch for anything the
-  browser cannot do: talking to a database directly, reading a file, calling a CLI.
+- **`cy.request`** runs in the browser context, appears in the command log, and needs no plugin
+  wiring. Reach for it first.
+- **`cy.task`** runs in Node. It is the escape hatch for things the browser cannot do: connecting to
+  a database directly, reading a file, invoking a CLI, generating a signed token.
 
-Reach for `cy.request` first. `cy.task` when the browser genuinely cannot get there.
+```ts
+// cypress.config.ts
+setupNodeEvents(on) {
+  on('task', {
+    async 'db:reset'() {
+      await resetDatabase()
+      return null
+    },
+  })
+}
+```
+
+A task must return something. Returning `undefined` is how Cypress reports "no task handled this".
 
 ## Test isolation
 
-`testIsolation` is on (the default). Before each test Cypress clears cookies, `localStorage`,
-`sessionStorage` and the page. That is what makes independence the default rather than a discipline.
+`testIsolation` defaults to on. Before each test, Cypress clears cookies, `localStorage`,
+`sessionStorage` and the page. That is what makes independence the default rather than a discipline
+everyone has to remember.
 
 `cy.session` is the counterweight: it restores just the auth state, cheaply, so isolation costs a
-cache lookup instead of a login round trip.
+cache lookup instead of a login round trip. The two features are designed to be used together.
 
-Turning isolation off (`describe('...', { testIsolation: false }, ...)`) is occasionally right for a
-long linear wizard where each step genuinely builds on the last. The cost is that those tests can
-now only run as a block, in order, and a failure in step 2 cascades through steps 3 to 9. No spec in
-this repo needs it.
+Turning isolation off for a `describe` block is occasionally right, typically for a long linear
+wizard where each step genuinely builds on the last:
+
+```ts
+describe('Onboarding wizard', { testIsolation: false }, () => { /* ... */ })
+```
+
+The price is that those tests can now only run as a block, in order, and a failure in step 2
+cascades through steps 3 to 9. Use it deliberately, not to paper over a state problem.
 
 ## Several assertions per test
 
 ```ts
-cy.location('pathname').should('eq', '/todos')
-cy.getByData('todos-page').should('be.visible')
-cy.getByData('nav-user').should('have.text', 'Demo User')
+cy.location('pathname').should('eq', '/projects')
+cy.getByData('projects-page').should('be.visible')
+cy.getByData('nav-user').should('have.text', 'Ada Lovelace')
 cy.getByData('logout').should('be.visible')
 ```
 
-One test, four assertions. Splitting these into four tests would repeat the entire login and page
-load four times for no extra coverage. End-to-end tests are not unit tests; the setup cost dominates,
-so amortise it. The "one assertion per test" rule comes from a world where setup was free.
+One test, four assertions. Splitting these into four tests would repeat the login and page load four
+times for no additional coverage.
 
-## Anti-patterns this replaces
+End-to-end tests are not unit tests. The setup cost dominates, so amortise it. The "one assertion per
+test" rule comes from a world where setup was free.
+
+## The anti-patterns this replaces
 
 - A `beforeEach` that creates data by clicking through the UI.
 - Tests written to run in a fixed order, where test 3 depends on the record test 1 created.
 - `after(() => cy.request('DELETE', '/api/everything'))`.
-- A shared "test account" whose data drifts over months until nobody dares reset it.
+- A shared long-lived test account whose data drifts over months until nobody dares reset it.

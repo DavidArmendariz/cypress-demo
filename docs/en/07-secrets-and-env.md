@@ -4,16 +4,17 @@
 
 - `Cypress.env()` is deprecated as of Cypress 15.10. Use `cy.env([...])`.
 - `cy.env()` for secrets, `Cypress.expose()` for public config.
-- `allowCypressEnv: false` turns the old habit into a hard error.
+- `allowCypressEnv: false` turns the old habit into an immediate error.
 
 Most material online predates this change, so it is worth spelling out.
 
-## Why `Cypress.env()` went away
+## Why `Cypress.env()` was deprecated
 
 `Cypress.env()` hydrated **every** environment variable into the browser. One `console.log`, one
-crash report, one screenshot of the command log, and your staging API key is somewhere it should not
-be. `cy.env()` surfaces only the keys you name, is asynchronous so it fits the command chain, and
-passes only those keys into `cy.origin()` contexts.
+crash report, one screenshot of the command log, and a staging API key is somewhere it should not be.
+
+`cy.env()` surfaces only the keys you name, is asynchronous so it fits the command chain, and passes
+only those keys into `cy.origin()` contexts.
 
 ## The two accessors
 
@@ -26,23 +27,33 @@ cy.env<{ testUserPassword: string }>(['testUserPassword'], { log: false }).then(
 )
 
 // Public, non-sensitive config. Synchronous.
-const apiUrl = Cypress.expose('apiUrl')
+const apiVersion = Cypress.expose('apiVersion')
 ```
 
-`cypress.config.ts` in this repo:
+Configure them separately, because they have different risk profiles:
 
 ```ts
-expose: { apiUrl: API_URL },   // safe to leak into the browser
-allowCypressEnv: false,        // block the deprecated accessor entirely
+export default defineConfig({
+  expose: { apiVersion: 'v2', environment: 'staging' },  // safe in the browser
+  allowCypressEnv: false,                                 // block the deprecated accessor
+})
 ```
 
-Secrets are **not** in the committed config. They come from:
+## Where secrets come from
 
-- `cypress.env.json`, which is gitignored. `make install` copies `cypress.env.example.json` into
-  place so a fresh clone runs immediately with development values.
-- `CYPRESS_*` environment variables in CI, fed from GitHub secrets. See `.github/workflows/ci.yml`.
+Never from the committed config. Two sources, read identically by `cy.env()`:
 
-`cy.env()` reads both the same way, so no spec knows or cares which environment it is in.
+- **`cypress.env.json`** locally, gitignored. Commit a `cypress.env.example.json` with placeholders
+  so a fresh clone knows what to fill in, and have your setup script copy it into place.
+- **`CYPRESS_*` environment variables** in CI, fed from your secret store:
+
+```yaml
+env:
+  CYPRESS_testUserEmail: qa-user@example.com
+  CYPRESS_testUserPassword: ${{ secrets.TEST_USER_PASSWORD }}
+```
+
+No spec branches on environment. The same `cy.env(['testUserPassword'])` works in both.
 
 ## Handling the value once you have it
 
@@ -57,30 +68,39 @@ Secrets are **not** in the committed config. They come from:
 - **Pass `{ log: false }` to downstream commands.** `cy.request` and `.type()` both accept it. Note
   this hides the command-log entry; it does not redact the value from anything else.
 
-All four rules are visible in `cypress/support/commands.ts`.
-
 ## Session ids are logged
 
 ```ts
-cy.session(['api-login', user], /* ... */)
+cy.session(['api-login', email], /* ... */)
 ```
 
-The session id appears in the reporter and in CI output. Put the email in it if you like. Never the
-password.
+The session id appears in the reporter and in CI output. An email is fine. A password is not.
 
 ## Enforcement
 
-Two layers, because a convention nobody can violate is worth more than a convention everyone agrees
-with:
+Two layers, because a convention nobody can violate is worth more than one everybody agrees with:
 
-1. `allowCypressEnv: false` in `cypress.config.ts` makes `Cypress.env()` fail at runtime, and also
-   blocks setting environment variables through test configuration.
-2. A `no-restricted-syntax` rule in `eslint.config.js` catches it at lint time with a message that
-   says what to use instead.
+1. `allowCypressEnv: false` makes `Cypress.env()` fail at runtime, and also blocks setting
+   environment variables through per-test configuration.
+2. A lint rule catches it before the code is even run:
 
-## In a real project
+```js
+'no-restricted-syntax': [
+  'error',
+  {
+    selector: "CallExpression[callee.object.name='Cypress'][callee.property.name='env']",
+    message: 'Cypress.env() is deprecated. Use cy.env([...]) or Cypress.expose().',
+  },
+],
+```
 
-The demo password lives in `cypress.env.example.json` and is also the value `server/store.ts` seeds,
-which is fine for a throwaway in-memory store and wrong for anything else. In a real project both
-sides read from a secret store, the committed example file contains placeholders, and CI injects the
-real values. The pattern is identical; only the source of the value changes.
+## Test accounts
+
+A few habits that prevent the common incidents:
+
+- Test accounts live only in non-production environments, and their credentials rotate like any
+  other secret.
+- Never point a suite that calls `resetDb` at an environment with real user data. Make the test-only
+  endpoints impossible to enable there, as described in [01-project-setup.md](01-project-setup.md).
+- If a spec needs production-like data, use anonymised fixtures. Do not copy real records into a test
+  environment.

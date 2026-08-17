@@ -7,8 +7,6 @@ import { defineConfig } from 'vitepress'
  */
 const base = process.env.DOCS_BASE ?? '/cypress-demo/'
 
-const REPO = 'https://github.com/DavidArmendariz/cypress-demo'
-
 /** The 11 chapters. Filenames are identical in both locales, so one list drives both sidebars. */
 const CHAPTERS = [
   { slug: '01-project-setup', en: 'Project setup', es: 'Configuración del proyecto' },
@@ -16,12 +14,12 @@ const CHAPTERS = [
   { slug: '03-testing-behind-auth', en: 'Testing behind auth', es: 'Probar detrás de la autenticación' },
   { slug: '04-state-and-isolation', en: 'State and test isolation', es: 'Estado y aislamiento de pruebas' },
   { slug: '05-network-control', en: 'Network control', es: 'Control de la red' },
-  { slug: '06-component-vs-e2e', en: 'Component tests vs E2E', es: 'Pruebas de componente frente a E2E' },
+  { slug: '06-component-vs-e2e', en: 'Choosing the right level of test', es: 'Elegir el nivel adecuado de prueba' },
   { slug: '07-secrets-and-env', en: 'Secrets and environment variables', es: 'Secretos y variables de entorno' },
   { slug: '08-accessibility', en: 'Accessibility', es: 'Accesibilidad' },
-  { slug: '09-ci', en: 'CI', es: 'CI' },
+  { slug: '09-ci', en: 'Continuous integration', es: 'Integración continua' },
   { slug: '10-anti-patterns', en: 'Anti-patterns', es: 'Antipatrones' },
-  { slug: '11-makefile-as-entrypoint', en: 'The Makefile as the entrypoint', es: 'El Makefile como punto de entrada' },
+  { slug: '11-makefile-as-entrypoint', en: 'A single task entrypoint', es: 'Un único punto de entrada de tareas' },
 ]
 
 const sidebarFor = (locale: 'en' | 'es', text: string) => [
@@ -47,28 +45,24 @@ export default defineConfig({
   lastUpdated: true,
 
   title: 'Cypress best practices',
-  description: 'Cypress patterns for an auth-gated app, demonstrated in working code',
+  description: 'A practical guide to testing an application behind a login with Cypress',
 
   head: [['link', { rel: 'icon', href: `${base}favicon.svg` }]],
 
   // No `root` locale: English lives in docs/en/ and Spanish in docs/es/, so the
   // two are symmetric and neither is a second-class citizen in the URL space.
   // docs/README.md is the landing page that sends you to one of them.
+  //
+  // These pages are written to stand on their own, with no references to the
+  // repository they happen to live in, so the site can be shared as-is.
   locales: {
     en: {
       label: 'English',
       lang: 'en',
       themeConfig: {
-        nav: [
-          { text: 'Docs', link: '/en/01-project-setup' },
-          { text: 'Repo', link: REPO },
-        ],
+        nav: [{ text: 'Guide', link: '/en/01-project-setup' }],
         sidebar: sidebarFor('en', 'Practices'),
         outline: { level: [2, 3], label: 'On this page' },
-        editLink: {
-          pattern: `${REPO}/edit/main/docs/:path`,
-          text: 'Edit this page on GitHub',
-        },
         lastUpdatedText: 'Last updated',
         docFooter: { prev: 'Previous', next: 'Next' },
       },
@@ -80,16 +74,9 @@ export default defineConfig({
       title: 'Buenas prácticas de Cypress',
       description: 'Patrones de Cypress para una app con autenticación, demostrados en código real',
       themeConfig: {
-        nav: [
-          { text: 'Documentación', link: '/es/01-project-setup' },
-          { text: 'Repositorio', link: REPO },
-        ],
+        nav: [{ text: 'Guía', link: '/es/01-project-setup' }],
         sidebar: sidebarFor('es', 'Prácticas'),
         outline: { level: [2, 3], label: 'En esta página' },
-        editLink: {
-          pattern: `${REPO}/edit/main/docs/:path`,
-          text: 'Editar esta página en GitHub',
-        },
         lastUpdatedText: 'Última actualización',
         docFooter: { prev: 'Anterior', next: 'Siguiente' },
         returnToTopLabel: 'Volver arriba',
@@ -102,8 +89,6 @@ export default defineConfig({
   },
 
   themeConfig: {
-    socialLinks: [{ icon: 'github', link: REPO }],
-
     // Local search needs no account and no external service. It indexes each
     // locale separately, so a Spanish query does not return English pages.
     search: {
@@ -127,8 +112,7 @@ export default defineConfig({
     },
 
     footer: {
-      message: 'A reference project. The test suite is the point.',
-      copyright: `MIT licensed · <a href="${REPO}">source</a>`,
+      message: 'Cypress patterns for applications behind a login.',
     },
   },
 })
